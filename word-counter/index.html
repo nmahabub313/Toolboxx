@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word Counter — Toolboxx</title>
+  <meta name="description" content="Free online word counter. Count words, characters, sentences, paragraphs, and reading time instantly. No sign-up needed." />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+    :root {
+      --bg: #f7f5f2;
+      --surface: #ffffff;
+      --border: #e8e4de;
+      --text: #1a1814;
+      --muted: #8a8580;
+      --accent: #d4622a;
+      --accent-light: #fdf0ea;
+      --radius: 16px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+ 
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+ 
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(247,245,242,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      flex-shrink: 0;
+    }
+ 
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--accent); }
+ 
+    .nav-back {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-back:hover { color: var(--accent); }
+ 
+    /* PAGE HEADER */
+    .page-header {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 2rem 32px;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.5s ease 0.05s forwards;
+    }
+ 
+    .breadcrumb {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent); }
+ 
+    .page-header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+    }
+ 
+    .page-header h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+ 
+    .page-header p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+ 
+    /* MAIN LAYOUT */
+    .main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 2rem 60px;
+      flex: 1;
+      width: 100%;
+    }
+ 
+    /* STATS ROW */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.8rem;
+      margin-bottom: 1.2rem;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.1s forwards;
+    }
+ 
+    .stat-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 0.8rem;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+ 
+    .stat-card.highlight {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+ 
+    .stat-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.75rem;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      line-height: 1;
+      transition: color 0.2s;
+    }
+ 
+    .stat-card.highlight .stat-value { color: var(--accent); }
+ 
+    .stat-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+ 
+    /* EDITOR */
+    .editor-wrap {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.15s forwards;
+    }
+ 
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 1rem;
+      border-bottom: 1.5px solid var(--border);
+      background: var(--bg);
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+ 
+    .toolbar-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+ 
+    .toolbar-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+ 
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text);
+      transition: all 0.15s;
+    }
+ 
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.danger:hover { border-color: #e05252; color: #e05252; }
+ 
+    textarea#editor {
+      width: 100%;
+      min-height: 340px;
+      padding: 1.4rem;
+      border: none;
+      outline: none;
+      resize: vertical;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      line-height: 1.75;
+      color: var(--text);
+      background: var(--surface);
+      font-weight: 300;
+    }
+ 
+    textarea#editor::placeholder { color: #c5c0ba; }
+ 
+    /* DENSITY BAR */
+    .density-section {
+      margin-top: 1.2rem;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.2s forwards;
+    }
+ 
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.8rem;
+    }
+ 
+    .density-list {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+ 
+    .density-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+ 
+    .density-item:last-child { border-bottom: none; }
+    .density-item:hover { background: var(--bg); }
+ 
+    .density-word {
+      font-size: 0.9rem;
+      font-weight: 500;
+      min-width: 120px;
+      color: var(--text);
+    }
+ 
+    .density-bar-wrap {
+      flex: 1;
+      background: var(--bg);
+      border-radius: 99px;
+      height: 6px;
+      overflow: hidden;
+    }
+ 
+    .density-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+ 
+    .density-count {
+      font-size: 0.8rem;
+      color: var(--muted);
+      min-width: 32px;
+      text-align: right;
+      font-weight: 500;
+    }
+ 
+    .density-empty {
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+ 
+    /* READING LEVEL */
+    .meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+      margin-top: 1.2rem;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.25s forwards;
+    }
+ 
+    .meta-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 1.1rem 1.2rem;
+      box-shadow: var(--shadow);
+    }
+ 
+    .meta-card-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+ 
+    .meta-card-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+ 
+    .meta-card-sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      font-weight: 300;
+    }
+ 
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 1.5rem 2rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+ 
+    /* COPY TOAST */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--text);
+      color: #fff;
+      padding: 0.6rem 1.4rem;
+      border-radius: 99px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      z-index: 999;
+      transition: transform 0.3s ease;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+ 
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+ 
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+      .meta-row { grid-template-columns: 1fr; }
+      .page-header { padding: 32px 1.2rem 24px; }
+      .main { padding: 0 1.2rem 48px; }
+      nav { padding: 0 1.2rem; }
+    }
+ 
+    @media (max-width: 400px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+ 
+<nav>
+  <a class="logo" href="/">Tool<span>boxx</span></a>
+  <a class="nav-back" href="/">
+    ← All Tools
+  </a>
+</nav>
+ 
+<div class="page-header">
+  <div class="breadcrumb"><a href="/">Toolboxx</a> / Word Counter</div>
+  <h1>Word <em>Counter</em></h1>
+  <p>Paste or type your text — stats update instantly, no button needed.</p>
+</div>
+ 
+<main class="main">
+ 
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card highlight">
+      <div class="stat-value" id="s-words">0</div>
+      <div class="stat-label">Words</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="s-chars">0</div>
+      <div class="stat-label">Characters</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="s-chars-ns">0</div>
+      <div class="stat-label">No Spaces</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="s-sentences">0</div>
+      <div class="stat-label">Sentences</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="s-paragraphs">0</div>
+      <div class="stat-label">Paragraphs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="s-read">0m</div>
+      <div class="stat-label">Read Time</div>
+    </div>
+  </div>
+ 
+  <!-- EDITOR -->
+  <div class="editor-wrap">
+    <div class="editor-toolbar">
+      <span class="toolbar-label">Your Text</span>
+      <div class="toolbar-actions">
+        <button class="btn" onclick="copyAll()">Copy text</button>
+        <button class="btn danger" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+    <textarea id="editor" placeholder="Start typing or paste your text here… Stats update as you type."></textarea>
+  </div>
+ 
+  <!-- WORD DENSITY -->
+  <div class="density-section">
+    <div class="section-title">Top Words</div>
+    <div class="density-list" id="density-list">
+      <div class="density-empty">Type something to see word frequency</div>
+    </div>
+  </div>
+ 
+  <!-- META CARDS -->
+  <div class="meta-row">
+    <div class="meta-card">
+      <div class="meta-card-label">Average Word Length</div>
+      <div class="meta-card-value" id="m-avg-word">—</div>
+      <div class="meta-card-sub">characters per word</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-card-label">Average Sentence Length</div>
+      <div class="meta-card-value" id="m-avg-sent">—</div>
+      <div class="meta-card-sub">words per sentence</div>
+    </div>
+  </div>
+ 
+</main>
+ 
+<footer>
+  <a href="/">← Back to Toolboxx</a> · Free forever · No sign-up
+</footer>
+ 
+<div class="toast" id="toast">Copied!</div>
+ 
+<script>
+  const editor = document.getElementById('editor');
+  const STOPWORDS = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','is','it','this','that','was','are','be','as','by','from','have','has','had','not','we','you','i','he','she','they','my','your','our','its','his','her','their','so','if','do','did','can','will','would','could','should','may','might','about','up','out','than','then','there','been','more','also','into','just','no','what','which','who','when','how','all','one','were','me','him','us','them','these','those','any','some','each','both','few','very','too','here','such','after','before','over','under','between','through']);
+ 
+  editor.addEventListener('input', analyze);
+ 
+  function analyze() {
+    const text = editor.value;
+ 
+    // Words
+    const words = text.trim() ? text.trim().split(/\s+/).filter(w => w.length > 0) : [];
+    const wordCount = words.length;
+ 
+    // Chars
+    const chars = text.length;
+    const charsNoSpace = text.replace(/\s/g, '').length;
+ 
+    // Sentences
+    const sentences = text.trim() ? text.split(/[.!?]+/).filter(s => s.trim().length > 0).length : 0;
+ 
+    // Paragraphs
+    const paragraphs = text.trim() ? text.split(/\n+/).filter(p => p.trim().length > 0).length : 0;
+ 
+    // Read time (avg 200 wpm)
+    const readSec = Math.ceil(wordCount / 200 * 60);
+    const readDisplay = readSec < 60 ? `<1m` : `${Math.ceil(readSec/60)}m`;
+ 
+    // Avg word length
+    const avgWord = wordCount > 0
+      ? (words.reduce((a, w) => a + w.replace(/[^a-zA-Z]/g,'').length, 0) / wordCount).toFixed(1)
+      : '—';
+ 
+    // Avg sentence length
+    const avgSent = sentences > 0 ? (wordCount / sentences).toFixed(1) : '—';
+ 
+    // Update stats
+    animateVal('s-words', wordCount);
+    animateVal('s-chars', chars);
+    animateVal('s-chars-ns', charsNoSpace);
+    animateVal('s-sentences', sentences);
+    animateVal('s-paragraphs', paragraphs);
+    document.getElementById('s-read').textContent = readDisplay;
+    document.getElementById('m-avg-word').textContent = avgWord === '—' ? '—' : avgWord;
+    document.getElementById('m-avg-sent').textContent = avgSent === '—' ? '—' : avgSent;
+ 
+    // Word density (exclude stopwords, punctuation)
+    const freq = {};
+    words.forEach(w => {
+      const clean = w.toLowerCase().replace(/[^a-z']/g, '');
+      if (clean.length > 1 && !STOPWORDS.has(clean)) {
+        freq[clean] = (freq[clean] || 0) + 1;
+      }
+    });
+ 
+    const sorted = Object.entries(freq).sort((a,b) => b[1]-a[1]).slice(0, 8);
+    const maxCount = sorted[0]?.[1] || 1;
+    const list = document.getElementById('density-list');
+ 
+    if (sorted.length === 0) {
+      list.innerHTML = '<div class="density-empty">Type something to see word frequency</div>';
+    } else {
+      list.innerHTML = sorted.map(([word, count]) => `
+        <div class="density-item">
+          <div class="density-word">${word}</div>
+          <div class="density-bar-wrap">
+            <div class="density-bar-fill" style="width:${(count/maxCount*100).toFixed(1)}%"></div>
+          </div>
+          <div class="density-count">${count}</div>
+        </div>
+      `).join('');
+    }
+  }
+ 
+  // Animate number change
+  const prevVals = {};
+  function animateVal(id, newVal) {
+    const el = document.getElementById(id);
+    if (prevVals[id] !== newVal) {
+      el.style.transform = 'scale(1.15)';
+      el.style.transition = 'transform 0.15s ease';
+      setTimeout(() => { el.style.transform = 'scale(1)'; }, 150);
+      prevVals[id] = newVal;
+    }
+    el.textContent = newVal.toLocaleString();
+  }
+ 
+  function copyAll() {
+    if (!editor.value) return;
+    navigator.clipboard.writeText(editor.value).then(() => showToast('Text copied!'));
+  }
+ 
+  function clearAll() {
+    editor.value = '';
+    analyze();
+    editor.focus();
+  }
+ 
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+</script>
+</body>
+</html>
